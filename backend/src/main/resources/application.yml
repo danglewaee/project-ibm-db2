@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: b2bops-backend
+  profiles:
+    default: local
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  sql:
+    init:
+      mode: never
+
+server:
+  shutdown: graceful
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+app:
+  runtime-mode: ${APP_RUNTIME_MODE:jpa}
+  persistence-mode: ${APP_PERSISTENCE_MODE:jpa}
+  ddl-path: ../db/db2-schema.sql
