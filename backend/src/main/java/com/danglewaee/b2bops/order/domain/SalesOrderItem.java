@@ -124,9 +124,7 @@ public class SalesOrderItem extends TimestampedEntity {
             );
         }
         reservedQty = reservedQty.add(quantity);
-        status = reservedQty.compareTo(orderedQty) == 0
-                ? SalesOrderItemStatus.ALLOCATED
-                : SalesOrderItemStatus.PARTIALLY_ALLOCATED;
+        refreshStatusFromQuantities();
     }
 
     public BigDecimal remainingToShip() {
@@ -149,8 +147,51 @@ public class SalesOrderItem extends TimestampedEntity {
         }
         reservedQty = reservedQty.subtract(quantity);
         shippedQty = shippedQty.add(quantity);
-        status = shippedQty.compareTo(orderedQty) == 0
-                ? SalesOrderItemStatus.SHIPPED
-                : SalesOrderItemStatus.PARTIALLY_SHIPPED;
+        refreshStatusFromQuantities();
+    }
+
+    public void release(BigDecimal quantity) {
+        if (quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Release quantity must be greater than zero");
+        }
+        if (reservedQty.compareTo(quantity) < 0) {
+            throw new IllegalArgumentException(
+                    "Release exceeds reserved quantity for SKU " + product.getSku()
+            );
+        }
+        reservedQty = reservedQty.subtract(quantity);
+        refreshStatusFromQuantities();
+    }
+
+    public void cancelOutstandingDemand() {
+        if (shippedQty.compareTo(orderedQty) == 0) {
+            status = SalesOrderItemStatus.SHIPPED;
+            return;
+        }
+        if (shippedQty.signum() > 0) {
+            status = SalesOrderItemStatus.PARTIALLY_SHIPPED;
+            return;
+        }
+        status = SalesOrderItemStatus.CANCELLED;
+    }
+
+    private void refreshStatusFromQuantities() {
+        if (shippedQty.compareTo(orderedQty) == 0) {
+            status = SalesOrderItemStatus.SHIPPED;
+            return;
+        }
+        if (shippedQty.signum() > 0) {
+            status = SalesOrderItemStatus.PARTIALLY_SHIPPED;
+            return;
+        }
+        if (reservedQty.compareTo(orderedQty) == 0) {
+            status = SalesOrderItemStatus.ALLOCATED;
+            return;
+        }
+        if (reservedQty.signum() > 0) {
+            status = SalesOrderItemStatus.PARTIALLY_ALLOCATED;
+            return;
+        }
+        status = SalesOrderItemStatus.OPEN;
     }
 }

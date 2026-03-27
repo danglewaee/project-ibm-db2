@@ -90,6 +90,45 @@ class AuditLogControllerTest {
     }
 
     @Test
+    void returnsCancelledOrderAuditTrailByCorrelationId() throws Exception {
+        String location = createOrder("""
+                {
+                  "customerCode": "CUST-ACME",
+                  "requestedShipDate": "2026-04-21",
+                  "priority": 2,
+                  "lineItems": [
+                    { "sku": "SKU-1001", "orderedQty": 4.000 }
+                  ]
+                }
+                """);
+        String orderNumber = location.substring(location.lastIndexOf('/') + 1);
+
+        reserveOrder(location, """
+                {
+                  "warehouseCode": "WH-EAST",
+                  "lineReservations": [
+                    { "sku": "SKU-1001", "reserveQty": 4.000 }
+                  ]
+                }
+                """);
+
+        mockMvc.perform(post(location + "/cancel"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/audit-logs")
+                        .param("correlationId", orderNumber))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.entries", hasSize(3)))
+                .andExpect(jsonPath("$.entries[0].action", is("INSERT")))
+                .andExpect(jsonPath("$.entries[1].action", is("RESERVE")))
+                .andExpect(jsonPath("$.entries[2].entityType", is("SALES_ORDER")))
+                .andExpect(jsonPath("$.entries[2].action", is("CANCEL")))
+                .andExpect(jsonPath("$.entries[2].afterState.orderStatus", is("CANCELLED")))
+                .andExpect(jsonPath("$.entries[2].afterState.releasedReservations", hasSize(1)))
+                .andExpect(jsonPath("$.entries[2].correlationId", is(orderNumber)));
+    }
+
+    @Test
     void returnsCountLifecycleAuditTrailByCorrelationId() throws Exception {
         String location = createCountSession("""
                 {

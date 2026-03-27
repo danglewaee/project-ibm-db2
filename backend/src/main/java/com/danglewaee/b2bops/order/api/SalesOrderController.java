@@ -3,6 +3,7 @@ package com.danglewaee.b2bops.order.api;
 import com.danglewaee.b2bops.order.application.SalesOrderService;
 import com.danglewaee.b2bops.order.application.dto.CreateSalesOrderCommand;
 import com.danglewaee.b2bops.order.application.dto.CreateSalesOrderItemCommand;
+import com.danglewaee.b2bops.order.application.dto.OrderCancellationSummary;
 import com.danglewaee.b2bops.order.application.dto.ReservationSummary;
 import com.danglewaee.b2bops.order.application.dto.ReserveStockCommand;
 import com.danglewaee.b2bops.order.application.dto.ReserveStockLineCommand;
@@ -92,6 +93,11 @@ public class SalesOrderController {
         return ResponseEntity.ok(toShipmentResponse(summary));
     }
 
+    @PostMapping("/{orderNumber}/cancel")
+    public ResponseEntity<OrderCancellationResponse> cancelOrder(@PathVariable String orderNumber) {
+        return ResponseEntity.ok(toCancellationResponse(salesOrderService.cancelOrder(orderNumber)));
+    }
+
     private SalesOrderResponse toResponse(SalesOrderSummary summary) {
         return new SalesOrderResponse(
                 summary.orderNumber(),
@@ -149,6 +155,26 @@ public class SalesOrderController {
                                 line.orderShippedQtyAfter(),
                                 line.onHandQtyAfter(),
                                 line.reservedQtyAfter(),
+                                line.itemStatus()
+                        ))
+                        .toList()
+        );
+    }
+
+    private OrderCancellationResponse toCancellationResponse(OrderCancellationSummary summary) {
+        return new OrderCancellationResponse(
+                summary.orderNumber(),
+                summary.orderStatus(),
+                summary.releasedReservations().stream()
+                        .map(line -> new OrderCancellationResponse.ReleasedReservationResponse(
+                                line.reservationId(),
+                                line.lineNumber(),
+                                line.warehouseCode(),
+                                line.sku(),
+                                line.releasedQty(),
+                                line.orderReservedQtyAfter(),
+                                line.availableQtyAfter(),
+                                line.reservationStatus(),
                                 line.itemStatus()
                         ))
                         .toList()

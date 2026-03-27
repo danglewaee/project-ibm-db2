@@ -10,6 +10,7 @@ Files:
 This scope is intentionally narrow:
 - Create orders
 - Reserve stock by warehouse
+- Cancel orders and release reserved stock
 - Release or consume reservations
 - Ship partially or fully
 - Count stock and reconcile variances
@@ -20,6 +21,7 @@ The DDL is written for a first-pass schema review, not for zero-downtime migrati
 Backend status:
 - Generated from Spring Initializr and adapted for the project domain
 - Exposes order creation, order lookup, stock reservation, shipment, and stock count reconciliation APIs plus a system info endpoint
+- Exposes order cancellation with reservation release and release stock movements
 - Exposes audit trail lookup by `correlationId` or `entityType + entityId`
 - Runs with `H2` in the default local profile so the project works immediately
 - Seeds local customers, products, warehouses, and inventory balances for integration tests and manual API runs

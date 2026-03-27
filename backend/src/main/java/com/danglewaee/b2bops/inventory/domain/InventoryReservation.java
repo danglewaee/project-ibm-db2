@@ -127,6 +127,26 @@ public class InventoryReservation {
         return reservedQty.subtract(consumedQty).subtract(releasedQty);
     }
 
+    public void release(BigDecimal quantity) {
+        if (quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Release quantity must be greater than zero");
+        }
+        if (status != InventoryReservationStatus.ACTIVE) {
+            throw new IllegalArgumentException("Reservation " + id + " is not active");
+        }
+        if (remainingQty().compareTo(quantity) < 0) {
+            throw new IllegalArgumentException("Release exceeds remaining reserved quantity for reservation " + id);
+        }
+
+        releasedQty = releasedQty.add(quantity);
+        if (remainingQty().signum() == 0) {
+            status = consumedQty.signum() > 0
+                    ? InventoryReservationStatus.CLOSED
+                    : InventoryReservationStatus.CANCELLED;
+            closedAt = Instant.now();
+        }
+    }
+
     public void consume(BigDecimal quantity) {
         if (quantity.signum() <= 0) {
             throw new IllegalArgumentException("Shipment quantity must be greater than zero");

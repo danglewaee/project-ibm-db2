@@ -70,6 +70,19 @@ public class InventoryBalance {
         reservedQty = reservedQty.add(quantity);
     }
 
+    public void release(BigDecimal quantity) {
+        if (quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Release quantity must be greater than zero");
+        }
+        if (reservedQty.compareTo(quantity) < 0) {
+            throw new IllegalArgumentException(
+                    "Reserved quantity is too low to release SKU " + product.getSku()
+                            + " in warehouse " + warehouse.getWarehouseCode()
+            );
+        }
+        reservedQty = reservedQty.subtract(quantity);
+    }
+
     public void ship(BigDecimal quantity) {
         if (quantity.signum() <= 0) {
             throw new IllegalArgumentException("Shipment quantity must be greater than zero");

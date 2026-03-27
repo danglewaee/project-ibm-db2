@@ -121,6 +121,10 @@ public class SalesOrder extends TimestampedEntity {
         return Collections.unmodifiableList(lineItems);
     }
 
+    public void cancel() {
+        status = SalesOrderStatus.CANCELLED;
+    }
+
     public void refreshStatus() {
         boolean allShipped = lineItems.stream()
                 .allMatch(item -> item.getStatus() == SalesOrderItemStatus.SHIPPED);

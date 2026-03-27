@@ -11,10 +11,12 @@ import com.danglewaee.b2bops.order.application.dto.CreateSalesOrderCommand;
 import com.danglewaee.b2bops.order.application.dto.ReservationSummary;
 import com.danglewaee.b2bops.order.application.dto.ReserveStockCommand;
 import com.danglewaee.b2bops.order.application.dto.SalesOrderSummary;
+import com.danglewaee.b2bops.order.application.dto.OrderCancellationSummary;
 import com.danglewaee.b2bops.order.application.dto.ShipOrderCommand;
 import com.danglewaee.b2bops.order.application.dto.ShipmentSummary;
 import com.danglewaee.b2bops.inventory.domain.InventoryBalanceId;
 import com.danglewaee.b2bops.inventory.domain.InventoryReservation;
+import com.danglewaee.b2bops.inventory.domain.InventoryReservationStatus;
 import com.danglewaee.b2bops.inventory.domain.StockMovement;
 import com.danglewaee.b2bops.inventory.domain.StockMovementReferenceType;
 import com.danglewaee.b2bops.inventory.domain.StockMovementType;
@@ -317,6 +319,93 @@ public class JpaSalesOrderService implements SalesOrderService {
         return summary;
     }
 
+    @Override
+    @Transactional
+    public OrderCancellationSummary cancelOrder(String orderNumber) {
+        SalesOrder order = salesOrderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new OrderNotFoundException(orderNumber));
+        validateOrderCanBeCancelled(order);
+        SalesOrderSummary beforeState = SalesOrderSummary.from(order);
+
+        var releasedReservationContexts = inventoryReservationRepository
+                .findAllByOrderItem_Order_IdAndStatus(order.getId(), InventoryReservationStatus.ACTIVE)
+                .stream()
+                .filter(reservation -> reservation.remainingQty().signum() > 0)
+                .map(reservation -> {
+                    var balanceId = new InventoryBalanceId(
+                            reservation.getWarehouse().getId(),
+                            reservation.getProduct().getId()
+                    );
+                    var balance = inventoryBalanceRepository.findById(balanceId)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Inventory balance not found for reservation " + reservation.getId()
+                            ));
+
+                    var releaseQty = reservation.remainingQty();
+                    reservation.release(releaseQty);
+                    balance.release(releaseQty);
+
+                    SalesOrderItem item = reservation.getOrderItem();
+                    item.release(releaseQty);
+
+                    stockMovementRepository.save(new StockMovement(
+                            reservation.getWarehouse(),
+                            reservation.getProduct(),
+                            StockMovementType.RELEASE,
+                            StockMovementReferenceType.RESERVATION,
+                            reservation.getId(),
+                            BigDecimal.ZERO,
+                            releaseQty.negate(),
+                            "ORDER_CANCEL",
+                            "Order cancellation " + order.getOrderNumber(),
+                            CREATED_BY
+                    ));
+
+                    return new ReleasedReservationContext(
+                            reservation,
+                            item,
+                            releaseQty,
+                            balance.availableQty()
+                    );
+                })
+                .toList();
+
+        order.getLineItems().forEach(SalesOrderItem::cancelOutstandingDemand);
+        order.cancel();
+
+        var releasedReservations = releasedReservationContexts.stream()
+                .map(context -> new OrderCancellationSummary.ReleasedReservationSummary(
+                        context.reservation().getId(),
+                        context.item().getLineNumber(),
+                        context.reservation().getWarehouse().getWarehouseCode(),
+                        context.reservation().getProduct().getSku(),
+                        context.releasedQty(),
+                        context.item().getReservedQty(),
+                        context.availableQtyAfter(),
+                        context.reservation().getStatus(),
+                        context.item().getStatus()
+                ))
+                .toList();
+
+        OrderCancellationSummary summary = new OrderCancellationSummary(
+                order.getOrderNumber(),
+                order.getStatus(),
+                releasedReservations
+        );
+
+        auditLogService.record(
+                AuditEntityType.SALES_ORDER,
+                order.getId(),
+                AuditAction.CANCEL,
+                beforeState,
+                summary,
+                CREATED_BY,
+                order.getOrderNumber()
+        );
+
+        return summary;
+    }
+
     private void validateUniqueSkus(CreateSalesOrderCommand command) {
         var seen = new LinkedHashSet<String>();
         var duplicates = new LinkedHashSet<String>();
@@ -397,6 +486,14 @@ public class JpaSalesOrderService implements SalesOrderService {
         }
     }
 
+    private void validateOrderCanBeCancelled(SalesOrder order) {
+        if (order.getStatus() == SalesOrderStatus.CANCELLED || order.getStatus() == SalesOrderStatus.SHIPPED) {
+            throw new IllegalArgumentException(
+                    "Order cannot be cancelled in status " + order.getStatus()
+            );
+        }
+    }
+
     private void validateReservationForShipment(
             SalesOrder order,
             Long warehouseId,
@@ -412,5 +509,13 @@ public class JpaSalesOrderService implements SalesOrderService {
                     "Reservation " + reservation.getId() + " does not belong to the requested warehouse"
             );
         }
+    }
+
+    private record ReleasedReservationContext(
+            InventoryReservation reservation,
+            SalesOrderItem item,
+            BigDecimal releasedQty,
+            BigDecimal availableQtyAfter
+    ) {
     }
 }

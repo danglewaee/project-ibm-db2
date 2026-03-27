@@ -1,6 +1,7 @@
 package com.danglewaee.b2bops.order.application;
 
 import com.danglewaee.b2bops.order.application.dto.CreateSalesOrderCommand;
+import com.danglewaee.b2bops.order.application.dto.OrderCancellationSummary;
 import com.danglewaee.b2bops.order.application.dto.ReservationSummary;
 import com.danglewaee.b2bops.order.application.dto.ReserveStockCommand;
 import com.danglewaee.b2bops.order.application.dto.SalesOrderSummary;
@@ -16,4 +17,6 @@ public interface SalesOrderService {
     ReservationSummary reserveStock(String orderNumber, ReserveStockCommand command);
 
     ShipmentSummary shipOrder(String orderNumber, ShipOrderCommand command);
+
+    OrderCancellationSummary cancelOrder(String orderNumber);
 }
