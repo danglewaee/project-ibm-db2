@@ -11,7 +11,9 @@ Files:
 - `backend/src/main/resources/db/migration/db2-demo/V2__seed_demo_data.sql`: Demo reference data for IBM Db2 smoke and demo runs.
 - `backend/src/main/resources/db/migration/h2-demo/V2__seed_demo_data.sql`: Demo reference data for the default H2 local profile.
 - `infra/docker-compose.db2.yml`: Local Db2 runtime for validating the `db2` Spring profile.
+- `infra/codeengine/db2-secret.env.template`: Template for the Db2 secret consumed by IBM Cloud Code Engine.
 - `infra/docker-compose.stack.yml`: Full local stack that runs the containerized backend against Db2.
+- `scripts/deploy-code-engine.ps1`: Idempotent IBM Cloud Code Engine deploy helper for the backend, project, and Db2 secret wiring.
 - `scripts/run-db2-smoke.ps1`: Windows helper that starts Db2 locally and runs Maven tests against the live `db2` profile.
 - `scripts/run-stack-smoke.ps1`: Windows helper that builds the backend container, starts the full stack, and checks health and system info endpoints.
 
@@ -53,3 +55,11 @@ Full-stack container smoke path:
 - Run `powershell -ExecutionPolicy Bypass -File .\scripts\run-stack-smoke.ps1 -Build`
 - Add `-StopStack` if you want the script to tear the stack down after the health checks complete
 - The containerized backend listens on `http://localhost:8080` and starts with `SPRING_PROFILES_ACTIVE=db2,seed-demo-data`
+
+IBM Cloud Code Engine deploy path:
+- Install `IBM Cloud CLI` and the `code-engine` plugin, or reuse the path already configured by `scripts/deploy-code-engine.ps1`
+- Copy `infra\codeengine\db2-secret.env.template` to `infra\codeengine\db2-secret.env` and fill in the reachable Db2 connection values
+- If you are not already logged in, run `powershell -ExecutionPolicy Bypass -File .\scripts\deploy-code-engine.ps1 -UseSso` or pass `-ApiKeyFile`
+- The script creates or selects the Code Engine project, creates or updates the generic secret, and creates or updates the application from the local `backend` Dockerfile source
+- If your shell cannot resolve `ibmcloud`, pass `-IBMCloudExecutable` with the full path to `ibmcloud.exe`
+- Use `-DryRun` first if you want to inspect the exact `ibmcloud ce` commands before they run
