@@ -33,13 +33,15 @@ public class SystemInfoController {
                         "create-order-draft",
                         "lookup-order-by-order-number",
                         "reserve-stock-by-warehouse",
+                        "cancel-order-and-release-reservations",
                         "ship-order-partially-or-fully",
-                        "count-stock-and-reconcile"
+                        "count-stock-and-reconcile",
+                        "lookup-audit-trail-by-correlation-id"
                 ),
                 List.of(
-                        "expand persistence to shipments and stock movements",
-                        "wire db/db2-schema.sql into a migration strategy",
-                        "switch from local H2 to the db2 profile in IBM environments"
+                        "run the same flow set against a live Db2 instance",
+                        "package the backend for IBM Cloud Code Engine",
+                        "add smoke checks for migration + startup in db2 profile"
                 )
         );
     }

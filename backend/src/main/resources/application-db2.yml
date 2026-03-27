@@ -5,13 +5,15 @@ spring:
     password: ${DB2_PASSWORD:password}
     driver-class-name: com.ibm.db2.jcc.DB2Driver
   jpa:
-    hibernate:
-      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.DB2Dialect
         format_sql: true
+  flyway:
+    connect-retries: 3
+    locations: classpath:db/migration/db2
 
 app:
   runtime-mode: db2
-  persistence-mode: jpa-db2
+  persistence-mode: jpa-flyway-db2
+  ddl-path: classpath:db/migration/db2

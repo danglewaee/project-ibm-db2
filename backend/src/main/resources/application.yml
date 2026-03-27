@@ -3,10 +3,19 @@ spring:
     name: b2bops-backend
   profiles:
     default: local
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    create-schemas: true
+    default-schema: B2BOPS
+    schemas: B2BOPS
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: B2BOPS
   sql:
     init:
       mode: never
@@ -26,5 +35,5 @@ management:
 
 app:
   runtime-mode: ${APP_RUNTIME_MODE:jpa}
-  persistence-mode: ${APP_PERSISTENCE_MODE:jpa}
-  ddl-path: ../db/db2-schema.sql
+  persistence-mode: ${APP_PERSISTENCE_MODE:jpa-flyway}
+  ddl-path: classpath:db/migration

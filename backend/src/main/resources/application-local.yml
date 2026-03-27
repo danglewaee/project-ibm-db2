@@ -1,19 +1,22 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:b2bops;MODE=DB2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;DATABASE_TO_UPPER=false
+    # Keep H2 on its default uppercase identifier rules so Hibernate validation
+    # can resolve the Flyway-managed schema the same way production dialects do.
+    url: "jdbc:h2:mem:b2bops;MODE=DB2;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;INIT=CREATE SCHEMA IF NOT EXISTS B2BOPS\\;SET SCHEMA B2BOPS"
     username: sa
     password:
     driver-class-name: org.h2.Driver
+  flyway:
+    locations: classpath:db/migration/h2
   h2:
     console:
       enabled: true
   jpa:
-    hibernate:
-      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
 
 app:
   runtime-mode: local
-  persistence-mode: jpa-h2
+  persistence-mode: jpa-flyway-h2
+  ddl-path: classpath:db/migration/h2
