@@ -8,6 +8,8 @@ Files:
 - `db/db2-schema.sql`: Initial Db2 DDL for the allocation and reconciliation flow.
 - `backend/src/main/resources/db/migration/db2/V1__baseline.sql`: Flyway baseline used for IBM Db2 environments.
 - `backend/src/main/resources/db/migration/h2/V1__baseline.sql`: H2-compatible baseline used for local development and tests.
+- `infra/docker-compose.db2.yml`: Local Db2 runtime for validating the `db2` Spring profile.
+- `scripts/run-db2-smoke.ps1`: Windows helper that starts Db2 locally and runs Maven tests against the live `db2` profile.
 
 This scope is intentionally narrow:
 - Create orders
@@ -36,3 +38,8 @@ Backend status:
 Profiles:
 - Default `local`: uses `backend/src/main/resources/db/migration/h2` against in-memory `H2`
 - `db2`: uses `backend/src/main/resources/db/migration/db2` against the IBM Db2 datasource from `DB2_URL`, `DB2_USERNAME`, and `DB2_PASSWORD`
+- `seed-demo-data`: loads the same reference customers, products, warehouses, and balances used by the local profile so the `db2` profile can run repeatable smoke tests
+
+Db2 smoke path:
+- Start Docker Desktop and confirm `docker version` returns server info, then run `powershell -ExecutionPolicy Bypass -File .\scripts\run-db2-smoke.ps1 -StartContainer`
+- Add `-RunFullSuite` to execute the current controller test suite against live Db2 instead of just the startup smoke

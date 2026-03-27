@@ -19,8 +19,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("local")
-public class LocalReferenceDataInitializer {
+@Profile({"local", "seed-demo-data"})
+public class ReferenceDataInitializer {
 
     @Bean
     CommandLineRunner seedReferenceData(
