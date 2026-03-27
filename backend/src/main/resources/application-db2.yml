@@ -11,9 +11,9 @@ spring:
         format_sql: true
   flyway:
     connect-retries: 3
-    locations: classpath:db/migration/db2
+    locations: ${APP_FLYWAY_LOCATIONS:${app.flyway-base-locations}}
 
 app:
   runtime-mode: db2
   persistence-mode: jpa-flyway-db2
-  ddl-path: classpath:db/migration/db2
+  flyway-base-locations: classpath:db/migration/db2

@@ -39,9 +39,9 @@ public class SystemInfoController {
                         "lookup-audit-trail-by-correlation-id"
                 ),
                 List.of(
-                        "run the same flow set against a live Db2 instance",
-                        "package the backend for IBM Cloud Code Engine",
-                        "add smoke checks for migration + startup in db2 profile"
+                        "deploy the containerized backend to IBM Cloud Code Engine",
+                        "replace demo credentials with managed secrets",
+                        "add inbound receipts and replenishment workflows"
                 )
         );
     }

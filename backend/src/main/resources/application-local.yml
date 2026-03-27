@@ -7,7 +7,7 @@ spring:
     password:
     driver-class-name: org.h2.Driver
   flyway:
-    locations: classpath:db/migration/h2
+    locations: ${APP_FLYWAY_LOCATIONS:${app.flyway-base-locations},${app.flyway-demo-locations}}
   h2:
     console:
       enabled: true
@@ -19,4 +19,5 @@ spring:
 app:
   runtime-mode: local
   persistence-mode: jpa-flyway-h2
-  ddl-path: classpath:db/migration/h2
+  flyway-base-locations: classpath:db/migration/h2
+  flyway-demo-locations: classpath:db/migration/h2-demo

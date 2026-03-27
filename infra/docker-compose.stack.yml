@@ -1,0 +1,45 @@
+name: b2bops-stack
+
+services:
+  db2:
+    image: icr.io/db2_community/db2
+    privileged: true
+    environment:
+      LICENSE: accept
+      DB2INSTANCE: db2inst1
+      DB2INST1_PASSWORD: password
+      DBNAME: B2BOPS
+      BLU: "false"
+      ENABLE_ORACLE_COMPATIBILITY: "false"
+      TO_CREATE_SAMPLEDB: "false"
+      UPDATEAVAIL: "NO"
+      REPODB: "false"
+      IS_OSXFS: "false"
+    volumes:
+      - db2data:/database
+    healthcheck:
+      test: ["CMD-SHELL", "su - db2inst1 -c 'db2 connect to B2BOPS >/dev/null 2>&1'"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 360s
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    depends_on:
+      db2:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: db2,seed-demo-data
+      DB2_URL: jdbc:db2://db2:50000/B2BOPS
+      DB2_USERNAME: db2inst1
+      DB2_PASSWORD: password
+      APP_RUNTIME_MODE: db2-container
+      APP_PERSISTENCE_MODE: jpa-flyway-db2-container
+    ports:
+      - "8080:8080"
+
+volumes:
+  db2data:

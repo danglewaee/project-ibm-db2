@@ -36,4 +36,4 @@ management:
 app:
   runtime-mode: ${APP_RUNTIME_MODE:jpa}
   persistence-mode: ${APP_PERSISTENCE_MODE:jpa-flyway}
-  ddl-path: classpath:db/migration
+  ddl-path: ${spring.flyway.locations:classpath:db/migration}

@@ -1,0 +1,6 @@
+spring:
+  flyway:
+    locations: ${APP_FLYWAY_LOCATIONS:${app.flyway-base-locations},${app.flyway-demo-locations}}
+
+app:
+  flyway-demo-locations: classpath:db/migration/db2-demo

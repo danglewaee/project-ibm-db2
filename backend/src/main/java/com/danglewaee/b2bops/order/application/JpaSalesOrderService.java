@@ -35,6 +35,7 @@ import com.danglewaee.b2bops.order.persistence.SalesOrderRepository;
 import com.danglewaee.b2bops.order.persistence.ShipmentRepository;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -374,6 +375,9 @@ public class JpaSalesOrderService implements SalesOrderService {
         order.cancel();
 
         var releasedReservations = releasedReservationContexts.stream()
+                .sorted(Comparator
+                        .comparing((ReleasedReservationContext context) -> context.item().getLineNumber())
+                        .thenComparing(context -> context.reservation().getId()))
                 .map(context -> new OrderCancellationSummary.ReleasedReservationSummary(
                         context.reservation().getId(),
                         context.item().getLineNumber(),
