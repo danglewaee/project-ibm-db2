@@ -7,6 +7,9 @@ import com.danglewaee.b2bops.order.application.dto.ReservationSummary;
 import com.danglewaee.b2bops.order.application.dto.ReserveStockCommand;
 import com.danglewaee.b2bops.order.application.dto.ReserveStockLineCommand;
 import com.danglewaee.b2bops.order.application.dto.SalesOrderSummary;
+import com.danglewaee.b2bops.order.application.dto.ShipOrderCommand;
+import com.danglewaee.b2bops.order.application.dto.ShipOrderLineCommand;
+import com.danglewaee.b2bops.order.application.dto.ShipmentSummary;
 import jakarta.validation.Valid;
 import java.net.URI;
 import org.springframework.http.ResponseEntity;
@@ -73,6 +76,22 @@ public class SalesOrderController {
         return ResponseEntity.ok(toReservationResponse(summary));
     }
 
+    @PostMapping("/{orderNumber}/shipments")
+    public ResponseEntity<ShipmentResponse> shipOrder(
+            @PathVariable String orderNumber,
+            @Valid @RequestBody CreateShipmentRequest request
+    ) {
+        var command = new ShipOrderCommand(
+                request.warehouseCode(),
+                request.shipmentLines().stream()
+                        .map(line -> new ShipOrderLineCommand(line.reservationId(), line.shipQty()))
+                        .toList()
+        );
+
+        var summary = salesOrderService.shipOrder(orderNumber, command);
+        return ResponseEntity.ok(toShipmentResponse(summary));
+    }
+
     private SalesOrderResponse toResponse(SalesOrderSummary summary) {
         return new SalesOrderResponse(
                 summary.orderNumber(),
@@ -107,6 +126,29 @@ public class SalesOrderController {
                                 line.reservedQty(),
                                 line.itemReservedQty(),
                                 line.availableQtyAfter(),
+                                line.itemStatus()
+                        ))
+                        .toList()
+        );
+    }
+
+    private ShipmentResponse toShipmentResponse(ShipmentSummary summary) {
+        return new ShipmentResponse(
+                summary.shipmentNumber(),
+                summary.orderNumber(),
+                summary.warehouseCode(),
+                summary.shipmentStatus(),
+                summary.orderStatus(),
+                summary.shipmentLines().stream()
+                        .map(line -> new ShipmentResponse.ShipmentLineResponse(
+                                line.reservationId(),
+                                line.lineNumber(),
+                                line.sku(),
+                                line.shippedQty(),
+                                line.orderReservedQtyAfter(),
+                                line.orderShippedQtyAfter(),
+                                line.onHandQtyAfter(),
+                                line.reservedQtyAfter(),
                                 line.itemStatus()
                         ))
                         .toList()

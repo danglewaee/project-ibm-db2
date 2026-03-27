@@ -82,6 +82,10 @@ public class SalesOrderItem extends TimestampedEntity {
         return lineNumber;
     }
 
+    public SalesOrder getOrder() {
+        return order;
+    }
+
     public Product getProduct() {
         return product;
     }
@@ -123,5 +127,30 @@ public class SalesOrderItem extends TimestampedEntity {
         status = reservedQty.compareTo(orderedQty) == 0
                 ? SalesOrderItemStatus.ALLOCATED
                 : SalesOrderItemStatus.PARTIALLY_ALLOCATED;
+    }
+
+    public BigDecimal remainingToShip() {
+        return orderedQty.subtract(shippedQty);
+    }
+
+    public void ship(BigDecimal quantity) {
+        if (quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Shipment quantity must be greater than zero");
+        }
+        if (reservedQty.compareTo(quantity) < 0) {
+            throw new IllegalArgumentException(
+                    "Shipment exceeds reserved quantity for SKU " + product.getSku()
+            );
+        }
+        if (remainingToShip().compareTo(quantity) < 0) {
+            throw new IllegalArgumentException(
+                    "Shipment exceeds remaining order quantity for SKU " + product.getSku()
+            );
+        }
+        reservedQty = reservedQty.subtract(quantity);
+        shippedQty = shippedQty.add(quantity);
+        status = shippedQty.compareTo(orderedQty) == 0
+                ? SalesOrderItemStatus.SHIPPED
+                : SalesOrderItemStatus.PARTIALLY_SHIPPED;
     }
 }

@@ -121,18 +121,32 @@ public class SalesOrder extends TimestampedEntity {
         return Collections.unmodifiableList(lineItems);
     }
 
-    public void refreshAllocationStatus() {
+    public void refreshStatus() {
+        boolean allShipped = lineItems.stream()
+                .allMatch(item -> item.getStatus() == SalesOrderItemStatus.SHIPPED);
+        boolean anyShipped = lineItems.stream()
+                .anyMatch(item -> item.getShippedQty().signum() > 0);
         boolean allAllocated = lineItems.stream()
                 .allMatch(item -> item.getStatus() == SalesOrderItemStatus.ALLOCATED);
         boolean anyReserved = lineItems.stream()
                 .anyMatch(item -> item.getReservedQty().signum() > 0);
 
+        if (allShipped) {
+            status = SalesOrderStatus.SHIPPED;
+            return;
+        }
+        if (anyShipped) {
+            status = SalesOrderStatus.PARTIALLY_SHIPPED;
+            return;
+        }
         if (allAllocated) {
             status = SalesOrderStatus.ALLOCATED;
             return;
         }
         if (anyReserved) {
             status = SalesOrderStatus.PARTIALLY_ALLOCATED;
+            return;
         }
+        status = SalesOrderStatus.DRAFT;
     }
 }

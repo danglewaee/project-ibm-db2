@@ -70,6 +70,26 @@ public class InventoryBalance {
         reservedQty = reservedQty.add(quantity);
     }
 
+    public void ship(BigDecimal quantity) {
+        if (quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Shipment quantity must be greater than zero");
+        }
+        if (reservedQty.compareTo(quantity) < 0) {
+            throw new IllegalArgumentException(
+                    "Reserved quantity is too low to ship SKU " + product.getSku()
+                            + " from warehouse " + warehouse.getWarehouseCode()
+            );
+        }
+        if (onHandQty.compareTo(quantity) < 0) {
+            throw new IllegalArgumentException(
+                    "On-hand quantity is too low to ship SKU " + product.getSku()
+                            + " from warehouse " + warehouse.getWarehouseCode()
+            );
+        }
+        reservedQty = reservedQty.subtract(quantity);
+        onHandQty = onHandQty.subtract(quantity);
+    }
+
     public InventoryBalanceId getId() {
         return id;
     }

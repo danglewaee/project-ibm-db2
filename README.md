@@ -19,7 +19,8 @@ The DDL is written for a first-pass schema review, not for zero-downtime migrati
 
 Backend status:
 - Generated from Spring Initializr and adapted for the project domain
-- Exposes order creation, order lookup, and stock reservation APIs plus a system info endpoint
+- Exposes order creation, order lookup, stock reservation, and shipment APIs plus a system info endpoint
 - Runs with `H2` in the default local profile so the project works immediately
 - Seeds local customers, products, warehouses, and inventory balances for integration tests and manual API runs
+- Writes stock movement ledger entries when reserved stock is shipped
 - Includes a dedicated `db2` Spring profile for IBM Db2 environments
