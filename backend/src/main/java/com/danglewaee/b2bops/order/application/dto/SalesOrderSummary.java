@@ -29,6 +29,8 @@ public record SalesOrderSummary(
                                 item.getLineNumber(),
                                 item.getProduct().getSku(),
                                 item.getOrderedQty(),
+                                item.getReservedQty(),
+                                item.getShippedQty(),
                                 item.getStatus()
                         ))
                         .toList()
@@ -39,6 +41,8 @@ public record SalesOrderSummary(
             int lineNumber,
             String sku,
             BigDecimal orderedQty,
+            BigDecimal reservedQty,
+            BigDecimal shippedQty,
             SalesOrderItemStatus status
     ) {
     }

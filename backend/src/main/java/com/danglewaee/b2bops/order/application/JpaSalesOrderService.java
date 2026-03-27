@@ -5,7 +5,14 @@ import com.danglewaee.b2bops.catalog.persistence.CustomerRepository;
 import com.danglewaee.b2bops.catalog.persistence.ProductRepository;
 import com.danglewaee.b2bops.common.domain.RecordStatus;
 import com.danglewaee.b2bops.order.application.dto.CreateSalesOrderCommand;
+import com.danglewaee.b2bops.order.application.dto.ReservationSummary;
+import com.danglewaee.b2bops.order.application.dto.ReserveStockCommand;
 import com.danglewaee.b2bops.order.application.dto.SalesOrderSummary;
+import com.danglewaee.b2bops.inventory.domain.InventoryBalanceId;
+import com.danglewaee.b2bops.inventory.domain.InventoryReservation;
+import com.danglewaee.b2bops.inventory.persistence.InventoryBalanceRepository;
+import com.danglewaee.b2bops.inventory.persistence.InventoryReservationRepository;
+import com.danglewaee.b2bops.inventory.persistence.WarehouseRepository;
 import com.danglewaee.b2bops.order.domain.SalesOrder;
 import com.danglewaee.b2bops.order.domain.SalesOrderItem;
 import com.danglewaee.b2bops.order.domain.SalesOrderItemStatus;
@@ -26,15 +33,24 @@ public class JpaSalesOrderService implements SalesOrderService {
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
     private final SalesOrderRepository salesOrderRepository;
+    private final WarehouseRepository warehouseRepository;
+    private final InventoryBalanceRepository inventoryBalanceRepository;
+    private final InventoryReservationRepository inventoryReservationRepository;
 
     public JpaSalesOrderService(
             CustomerRepository customerRepository,
             ProductRepository productRepository,
-            SalesOrderRepository salesOrderRepository
+            SalesOrderRepository salesOrderRepository,
+            WarehouseRepository warehouseRepository,
+            InventoryBalanceRepository inventoryBalanceRepository,
+            InventoryReservationRepository inventoryReservationRepository
     ) {
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
         this.salesOrderRepository = salesOrderRepository;
+        this.warehouseRepository = warehouseRepository;
+        this.inventoryBalanceRepository = inventoryBalanceRepository;
+        this.inventoryReservationRepository = inventoryReservationRepository;
     }
 
     @Override
@@ -86,6 +102,72 @@ public class JpaSalesOrderService implements SalesOrderService {
         return SalesOrderSummary.from(order);
     }
 
+    @Override
+    @Transactional
+    public ReservationSummary reserveStock(String orderNumber, ReserveStockCommand command) {
+        validateUniqueReservationSkus(command);
+
+        SalesOrder order = salesOrderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new OrderNotFoundException(orderNumber));
+        validateOrderCanBeReserved(order);
+
+        var warehouse = warehouseRepository
+                .findByWarehouseCodeAndStatus(command.warehouseCode(), RecordStatus.ACTIVE)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Active warehouse not found: " + command.warehouseCode()
+                ));
+
+        Map<String, SalesOrderItem> itemsBySku = new LinkedHashMap<>();
+        for (SalesOrderItem item : order.getLineItems()) {
+            itemsBySku.put(item.getProduct().getSku(), item);
+        }
+
+        var summaries = command.lineReservations().stream().map(line -> {
+            SalesOrderItem item = itemsBySku.get(line.sku());
+            if (item == null) {
+                throw new IllegalArgumentException(
+                        "Order " + orderNumber + " does not contain SKU " + line.sku()
+                );
+            }
+
+            var balanceId = new InventoryBalanceId(warehouse.getId(), item.getProduct().getId());
+            var balance = inventoryBalanceRepository.findById(balanceId)
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Inventory balance not found for SKU " + line.sku()
+                                    + " in warehouse " + warehouse.getWarehouseCode()
+                    ));
+
+            balance.reserve(line.reserveQty());
+            item.reserve(line.reserveQty());
+
+            var reservation = inventoryReservationRepository.save(new InventoryReservation(
+                    item,
+                    warehouse,
+                    item.getProduct(),
+                    line.reserveQty()
+            ));
+
+            return new ReservationSummary.ReservationLineSummary(
+                    reservation.getId(),
+                    item.getLineNumber(),
+                    line.sku(),
+                    line.reserveQty(),
+                    item.getReservedQty(),
+                    balance.availableQty(),
+                    item.getStatus()
+            );
+        }).toList();
+
+        order.refreshAllocationStatus();
+
+        return new ReservationSummary(
+                order.getOrderNumber(),
+                warehouse.getWarehouseCode(),
+                order.getStatus(),
+                summaries
+        );
+    }
+
     private void validateUniqueSkus(CreateSalesOrderCommand command) {
         var seen = new LinkedHashSet<String>();
         var duplicates = new LinkedHashSet<String>();
@@ -115,5 +197,26 @@ public class JpaSalesOrderService implements SalesOrderService {
             throw new IllegalArgumentException("Active products not found for SKUs: " + missingSkus);
         }
         return skuToProduct;
+    }
+
+    private void validateUniqueReservationSkus(ReserveStockCommand command) {
+        var seen = new LinkedHashSet<String>();
+        var duplicates = new LinkedHashSet<String>();
+        for (var line : command.lineReservations()) {
+            if (!seen.add(line.sku())) {
+                duplicates.add(line.sku());
+            }
+        }
+        if (!duplicates.isEmpty()) {
+            throw new IllegalArgumentException("Duplicate reservation SKUs are not allowed: " + duplicates);
+        }
+    }
+
+    private void validateOrderCanBeReserved(SalesOrder order) {
+        if (order.getStatus() == SalesOrderStatus.CANCELLED || order.getStatus() == SalesOrderStatus.SHIPPED) {
+            throw new IllegalArgumentException(
+                    "Order cannot be reserved in status " + order.getStatus()
+            );
+        }
     }
 }

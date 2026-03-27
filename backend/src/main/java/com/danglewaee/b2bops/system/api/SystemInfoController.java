@@ -37,7 +37,7 @@ public class SystemInfoController {
                         "count-stock-and-reconcile"
                 ),
                 List.of(
-                        "expand persistence to reservations and shipments",
+                        "expand persistence to shipments and stock movements",
                         "wire db/db2-schema.sql into a migration strategy",
                         "switch from local H2 to the db2 profile in IBM environments"
                 )

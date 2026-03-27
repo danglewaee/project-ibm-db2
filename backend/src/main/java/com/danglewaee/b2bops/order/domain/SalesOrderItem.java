@@ -105,4 +105,23 @@ public class SalesOrderItem extends TimestampedEntity {
     public String getNotes() {
         return notes;
     }
+
+    public BigDecimal remainingToReserve() {
+        return orderedQty.subtract(reservedQty);
+    }
+
+    public void reserve(BigDecimal quantity) {
+        if (quantity.signum() <= 0) {
+            throw new IllegalArgumentException("Reservation quantity must be greater than zero");
+        }
+        if (remainingToReserve().compareTo(quantity) < 0) {
+            throw new IllegalArgumentException(
+                    "Reservation exceeds remaining quantity for SKU " + product.getSku()
+            );
+        }
+        reservedQty = reservedQty.add(quantity);
+        status = reservedQty.compareTo(orderedQty) == 0
+                ? SalesOrderItemStatus.ALLOCATED
+                : SalesOrderItemStatus.PARTIALLY_ALLOCATED;
+    }
 }

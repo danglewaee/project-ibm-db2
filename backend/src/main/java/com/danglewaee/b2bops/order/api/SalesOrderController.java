@@ -3,6 +3,9 @@ package com.danglewaee.b2bops.order.api;
 import com.danglewaee.b2bops.order.application.SalesOrderService;
 import com.danglewaee.b2bops.order.application.dto.CreateSalesOrderCommand;
 import com.danglewaee.b2bops.order.application.dto.CreateSalesOrderItemCommand;
+import com.danglewaee.b2bops.order.application.dto.ReservationSummary;
+import com.danglewaee.b2bops.order.application.dto.ReserveStockCommand;
+import com.danglewaee.b2bops.order.application.dto.ReserveStockLineCommand;
 import com.danglewaee.b2bops.order.application.dto.SalesOrderSummary;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -54,6 +57,22 @@ public class SalesOrderController {
         return toResponse(salesOrderService.getByOrderNumber(orderNumber));
     }
 
+    @PostMapping("/{orderNumber}/reservations")
+    public ResponseEntity<ReservationResponse> reserveStock(
+            @PathVariable String orderNumber,
+            @Valid @RequestBody CreateReservationRequest request
+    ) {
+        var command = new ReserveStockCommand(
+                request.warehouseCode(),
+                request.lineReservations().stream()
+                        .map(line -> new ReserveStockLineCommand(line.sku(), line.reserveQty()))
+                        .toList()
+        );
+
+        var summary = salesOrderService.reserveStock(orderNumber, command);
+        return ResponseEntity.ok(toReservationResponse(summary));
+    }
+
     private SalesOrderResponse toResponse(SalesOrderSummary summary) {
         return new SalesOrderResponse(
                 summary.orderNumber(),
@@ -67,7 +86,28 @@ public class SalesOrderController {
                                 item.lineNumber(),
                                 item.sku(),
                                 item.orderedQty(),
+                                item.reservedQty(),
+                                item.shippedQty(),
                                 item.status()
+                        ))
+                        .toList()
+        );
+    }
+
+    private ReservationResponse toReservationResponse(ReservationSummary summary) {
+        return new ReservationResponse(
+                summary.orderNumber(),
+                summary.warehouseCode(),
+                summary.orderStatus(),
+                summary.reservations().stream()
+                        .map(line -> new ReservationResponse.ReservationLineResponse(
+                                line.reservationId(),
+                                line.lineNumber(),
+                                line.sku(),
+                                line.reservedQty(),
+                                line.itemReservedQty(),
+                                line.availableQtyAfter(),
+                                line.itemStatus()
                         ))
                         .toList()
         );

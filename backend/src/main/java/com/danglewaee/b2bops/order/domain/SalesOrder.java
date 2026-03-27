@@ -120,4 +120,19 @@ public class SalesOrder extends TimestampedEntity {
     public List<SalesOrderItem> getLineItems() {
         return Collections.unmodifiableList(lineItems);
     }
+
+    public void refreshAllocationStatus() {
+        boolean allAllocated = lineItems.stream()
+                .allMatch(item -> item.getStatus() == SalesOrderItemStatus.ALLOCATED);
+        boolean anyReserved = lineItems.stream()
+                .anyMatch(item -> item.getReservedQty().signum() > 0);
+
+        if (allAllocated) {
+            status = SalesOrderStatus.ALLOCATED;
+            return;
+        }
+        if (anyReserved) {
+            status = SalesOrderStatus.PARTIALLY_ALLOCATED;
+        }
+    }
 }

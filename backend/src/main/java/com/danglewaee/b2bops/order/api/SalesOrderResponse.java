@@ -19,6 +19,8 @@ public record SalesOrderResponse(
             int lineNumber,
             String sku,
             BigDecimal orderedQty,
+            BigDecimal reservedQty,
+            BigDecimal shippedQty,
             SalesOrderItemStatus status
     ) {
     }
