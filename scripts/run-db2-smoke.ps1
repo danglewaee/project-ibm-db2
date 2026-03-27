@@ -76,8 +76,29 @@ function Wait-ForDb2Ready {
     $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
 
     while ((Get-Date) -lt $deadline) {
-        $logs = docker logs $ContainerName 2>&1 | Out-String
-        if ($LASTEXITCODE -eq 0 -and $logs -match "Setup has completed") {
+        $stdoutFile = [System.IO.Path]::GetTempFileName()
+        $stderrFile = [System.IO.Path]::GetTempFileName()
+
+        try {
+            $process = Start-Process `
+                -FilePath "docker" `
+                -ArgumentList @("logs", $ContainerName) `
+                -NoNewWindow `
+                -Wait `
+                -PassThru `
+                -RedirectStandardOutput $stdoutFile `
+                -RedirectStandardError $stderrFile
+
+            $logs = @(
+                Get-Content $stdoutFile -Raw -ErrorAction SilentlyContinue
+                Get-Content $stderrFile -Raw -ErrorAction SilentlyContinue
+            ) -join [Environment]::NewLine
+        }
+        finally {
+            Remove-Item $stdoutFile, $stderrFile -ErrorAction SilentlyContinue
+        }
+
+        if ($process.ExitCode -eq 0 -and $logs -match "Setup has completed") {
             return
         }
 
