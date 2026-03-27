@@ -1,5 +1,8 @@
 package com.danglewaee.b2bops.inventory.application;
 
+import com.danglewaee.b2bops.audit.application.AuditLogService;
+import com.danglewaee.b2bops.audit.domain.AuditAction;
+import com.danglewaee.b2bops.audit.domain.AuditEntityType;
 import com.danglewaee.b2bops.catalog.domain.Product;
 import com.danglewaee.b2bops.catalog.persistence.ProductRepository;
 import com.danglewaee.b2bops.common.domain.RecordStatus;
@@ -37,19 +40,22 @@ public class JpaStockCountService implements StockCountService {
     private final InventoryBalanceRepository inventoryBalanceRepository;
     private final StockMovementRepository stockMovementRepository;
     private final StockCountSessionRepository stockCountSessionRepository;
+    private final AuditLogService auditLogService;
 
     public JpaStockCountService(
             WarehouseRepository warehouseRepository,
             ProductRepository productRepository,
             InventoryBalanceRepository inventoryBalanceRepository,
             StockMovementRepository stockMovementRepository,
-            StockCountSessionRepository stockCountSessionRepository
+            StockCountSessionRepository stockCountSessionRepository,
+            AuditLogService auditLogService
     ) {
         this.warehouseRepository = warehouseRepository;
         this.productRepository = productRepository;
         this.inventoryBalanceRepository = inventoryBalanceRepository;
         this.stockMovementRepository = stockMovementRepository;
         this.stockCountSessionRepository = stockCountSessionRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -87,7 +93,18 @@ public class JpaStockCountService implements StockCountService {
 
         stockCountSessionRepository.saveAndFlush(session);
 
-        return StockCountSessionSummary.from(session);
+        StockCountSessionSummary summary = StockCountSessionSummary.from(session);
+        auditLogService.record(
+                AuditEntityType.STOCK_COUNT_SESSION,
+                session.getId(),
+                AuditAction.COUNT,
+                null,
+                summary,
+                ACTOR,
+                session.getCountNumber()
+        );
+
+        return summary;
     }
 
     @Override
@@ -104,6 +121,7 @@ public class JpaStockCountService implements StockCountService {
         StockCountSession session = stockCountSessionRepository.findByCountNumber(countNumber)
                 .orElseThrow(() -> new StockCountSessionNotFoundException(countNumber));
         validateSessionCanBeReconciled(session);
+        StockCountSessionSummary beforeState = StockCountSessionSummary.from(session);
 
         var reconciledLines = session.getItems().stream()
                 .map(item -> reconcileItem(session, item))
@@ -111,13 +129,25 @@ public class JpaStockCountService implements StockCountService {
 
         session.markPosted();
 
-        return new ReconciliationSummary(
+        ReconciliationSummary summary = new ReconciliationSummary(
                 session.getCountNumber(),
                 session.getWarehouse().getWarehouseCode(),
                 session.getStatus(),
                 session.getPostedAt(),
                 reconciledLines
         );
+
+        auditLogService.record(
+                AuditEntityType.STOCK_COUNT_SESSION,
+                session.getId(),
+                AuditAction.RECONCILE,
+                beforeState,
+                summary,
+                ACTOR,
+                session.getCountNumber()
+        );
+
+        return summary;
     }
 
     private ReconciliationSummary.ReconciledLineSummary reconcileItem(

@@ -1,5 +1,8 @@
 package com.danglewaee.b2bops.order.application;
 
+import com.danglewaee.b2bops.audit.application.AuditLogService;
+import com.danglewaee.b2bops.audit.domain.AuditAction;
+import com.danglewaee.b2bops.audit.domain.AuditEntityType;
 import com.danglewaee.b2bops.catalog.domain.Product;
 import com.danglewaee.b2bops.catalog.persistence.CustomerRepository;
 import com.danglewaee.b2bops.catalog.persistence.ProductRepository;
@@ -49,6 +52,7 @@ public class JpaSalesOrderService implements SalesOrderService {
     private final InventoryReservationRepository inventoryReservationRepository;
     private final ShipmentRepository shipmentRepository;
     private final StockMovementRepository stockMovementRepository;
+    private final AuditLogService auditLogService;
 
     public JpaSalesOrderService(
             CustomerRepository customerRepository,
@@ -58,7 +62,8 @@ public class JpaSalesOrderService implements SalesOrderService {
             InventoryBalanceRepository inventoryBalanceRepository,
             InventoryReservationRepository inventoryReservationRepository,
             ShipmentRepository shipmentRepository,
-            StockMovementRepository stockMovementRepository
+            StockMovementRepository stockMovementRepository,
+            AuditLogService auditLogService
     ) {
         this.customerRepository = customerRepository;
         this.productRepository = productRepository;
@@ -68,6 +73,7 @@ public class JpaSalesOrderService implements SalesOrderService {
         this.inventoryReservationRepository = inventoryReservationRepository;
         this.shipmentRepository = shipmentRepository;
         this.stockMovementRepository = stockMovementRepository;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -108,7 +114,18 @@ public class JpaSalesOrderService implements SalesOrderService {
         salesOrderRepository.save(order);
         order.assignOrderNumber("SO-" + String.format("%08d", order.getId()));
 
-        return SalesOrderSummary.from(order);
+        SalesOrderSummary summary = SalesOrderSummary.from(order);
+        auditLogService.record(
+                AuditEntityType.SALES_ORDER,
+                order.getId(),
+                AuditAction.INSERT,
+                null,
+                summary,
+                CREATED_BY,
+                order.getOrderNumber()
+        );
+
+        return summary;
     }
 
     @Override
@@ -127,6 +144,7 @@ public class JpaSalesOrderService implements SalesOrderService {
         SalesOrder order = salesOrderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new OrderNotFoundException(orderNumber));
         validateOrderCanBeReserved(order);
+        SalesOrderSummary beforeState = SalesOrderSummary.from(order);
 
         var warehouse = warehouseRepository
                 .findByWarehouseCodeAndStatus(command.warehouseCode(), RecordStatus.ACTIVE)
@@ -177,12 +195,24 @@ public class JpaSalesOrderService implements SalesOrderService {
 
         order.refreshStatus();
 
-        return new ReservationSummary(
+        ReservationSummary summary = new ReservationSummary(
                 order.getOrderNumber(),
                 warehouse.getWarehouseCode(),
                 order.getStatus(),
                 summaries
         );
+
+        auditLogService.record(
+                AuditEntityType.SALES_ORDER,
+                order.getId(),
+                AuditAction.RESERVE,
+                beforeState,
+                summary,
+                CREATED_BY,
+                order.getOrderNumber()
+        );
+
+        return summary;
     }
 
     @Override
@@ -193,6 +223,7 @@ public class JpaSalesOrderService implements SalesOrderService {
         SalesOrder order = salesOrderRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new OrderNotFoundException(orderNumber));
         validateOrderCanBeShipped(order);
+        SalesOrderSummary beforeState = SalesOrderSummary.from(order);
 
         var warehouse = warehouseRepository
                 .findByWarehouseCodeAndStatus(command.warehouseCode(), RecordStatus.ACTIVE)
@@ -264,7 +295,7 @@ public class JpaSalesOrderService implements SalesOrderService {
         shipment.markShipped();
         order.refreshStatus();
 
-        return new ShipmentSummary(
+        ShipmentSummary summary = new ShipmentSummary(
                 shipment.getShipmentNumber(),
                 order.getOrderNumber(),
                 warehouse.getWarehouseCode(),
@@ -272,6 +303,18 @@ public class JpaSalesOrderService implements SalesOrderService {
                 order.getStatus(),
                 summaries
         );
+
+        auditLogService.record(
+                AuditEntityType.SHIPMENT,
+                shipment.getId(),
+                AuditAction.SHIP,
+                beforeState,
+                summary,
+                CREATED_BY,
+                order.getOrderNumber()
+        );
+
+        return summary;
     }
 
     private void validateUniqueSkus(CreateSalesOrderCommand command) {
