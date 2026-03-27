@@ -1,5 +1,6 @@
 package com.danglewaee.b2bops.common.api;
 
+import com.danglewaee.b2bops.inventory.application.StockCountSessionNotFoundException;
 import com.danglewaee.b2bops.order.application.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
@@ -53,9 +54,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(OrderNotFoundException.class)
+    @ExceptionHandler({OrderNotFoundException.class, StockCountSessionNotFoundException.class})
     public ResponseEntity<ApiError> handleNotFound(
-            OrderNotFoundException exception,
+            RuntimeException exception,
             HttpServletRequest request
     ) {
         ApiError response = new ApiError(

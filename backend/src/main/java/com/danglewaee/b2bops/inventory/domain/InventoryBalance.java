@@ -90,6 +90,22 @@ public class InventoryBalance {
         onHandQty = onHandQty.subtract(quantity);
     }
 
+    public void adjustOnHand(BigDecimal quantityDelta) {
+        if (quantityDelta.signum() == 0) {
+            return;
+        }
+
+        BigDecimal adjustedOnHand = onHandQty.add(quantityDelta);
+        if (adjustedOnHand.signum() < 0) {
+            throw new IllegalArgumentException(
+                    "Count adjustment would make on-hand quantity negative for SKU " + product.getSku()
+                            + " in warehouse " + warehouse.getWarehouseCode()
+            );
+        }
+
+        onHandQty = adjustedOnHand;
+    }
+
     public InventoryBalanceId getId() {
         return id;
     }

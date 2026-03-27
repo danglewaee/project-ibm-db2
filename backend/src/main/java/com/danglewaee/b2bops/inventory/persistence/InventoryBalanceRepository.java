@@ -10,4 +10,10 @@ public interface InventoryBalanceRepository extends JpaRepository<InventoryBalan
 
     @EntityGraph(attributePaths = {"warehouse", "product"})
     Optional<InventoryBalance> findById(InventoryBalanceId id);
+
+    @EntityGraph(attributePaths = {"warehouse", "product"})
+    Optional<InventoryBalance> findByWarehouse_WarehouseCodeAndProduct_Sku(
+            String warehouseCode,
+            String sku
+    );
 }
