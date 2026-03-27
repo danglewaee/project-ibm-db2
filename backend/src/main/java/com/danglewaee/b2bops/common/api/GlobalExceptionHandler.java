@@ -1,5 +1,6 @@
 package com.danglewaee.b2bops.common.api;
 
+import com.danglewaee.b2bops.order.application.OrderNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import java.time.Instant;
@@ -50,5 +51,21 @@ public class GlobalExceptionHandler {
                 Map.of()
         );
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ApiError> handleNotFound(
+            OrderNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        ApiError response = new ApiError(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI(),
+                Map.of()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 }

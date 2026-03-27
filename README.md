@@ -19,5 +19,6 @@ The DDL is written for a first-pass schema review, not for zero-downtime migrati
 
 Backend status:
 - Generated from Spring Initializr and adapted for the project domain
-- Exposes a draft order creation API and system info endpoint
-- Keeps Db2 wiring in configuration, but temporarily runs in stub mode until persistence is implemented
+- Exposes order creation and lookup APIs plus a system info endpoint
+- Runs with `H2` in the default local profile so the project works immediately
+- Includes a dedicated `db2` Spring profile for IBM Db2 environments

@@ -16,6 +16,9 @@ public class SystemInfoController {
     @Value("${app.runtime-mode}")
     private String runtimeMode;
 
+    @Value("${app.persistence-mode}")
+    private String persistenceMode;
+
     @Value("${app.ddl-path}")
     private String ddlPath;
 
@@ -24,18 +27,19 @@ public class SystemInfoController {
         return new SystemInfoResponse(
                 applicationName,
                 runtimeMode,
-                "planned-db2-jpa",
+                persistenceMode,
                 ddlPath,
                 List.of(
                         "create-order-draft",
+                        "lookup-order-by-order-number",
                         "reserve-stock-by-warehouse",
                         "ship-order-partially-or-fully",
                         "count-stock-and-reconcile"
                 ),
                 List.of(
-                        "replace stub sales order service with Db2 persistence",
-                        "add reservation and shipment APIs",
-                        "wire db/db2-schema.sql into migration strategy"
+                        "expand persistence to reservations and shipments",
+                        "wire db/db2-schema.sql into a migration strategy",
+                        "switch from local H2 to the db2 profile in IBM environments"
                 )
         );
     }

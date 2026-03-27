@@ -1,6 +1,7 @@
 package com.danglewaee.b2bops.order.api;
 
 import com.danglewaee.b2bops.order.domain.SalesOrderStatus;
+import com.danglewaee.b2bops.order.domain.SalesOrderItemStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -15,8 +16,10 @@ public record SalesOrderResponse(
         List<SalesOrderLineResponse> lineItems
 ) {
     public record SalesOrderLineResponse(
+            int lineNumber,
             String sku,
-            BigDecimal orderedQty
+            BigDecimal orderedQty,
+            SalesOrderItemStatus status
     ) {
     }
 }

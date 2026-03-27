@@ -1,19 +1,12 @@
 spring:
   application:
     name: b2bops-backend
-  datasource:
-    url: ${DB2_URL:jdbc:db2://localhost:50000/B2BOPS}
-    username: ${DB2_USERNAME:db2inst1}
-    password: ${DB2_PASSWORD:password}
-    driver-class-name: com.ibm.db2.jcc.DB2Driver
+  profiles:
+    default: local
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: none
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.DB2Dialect
-        format_sql: true
   sql:
     init:
       mode: never
@@ -32,5 +25,6 @@ management:
         include: health,info
 
 app:
-  runtime-mode: stub
+  runtime-mode: ${APP_RUNTIME_MODE:jpa}
+  persistence-mode: ${APP_PERSISTENCE_MODE:jpa}
   ddl-path: ../db/db2-schema.sql

@@ -6,4 +6,6 @@ import com.danglewaee.b2bops.order.application.dto.SalesOrderSummary;
 public interface SalesOrderService {
 
     SalesOrderSummary createDraft(CreateSalesOrderCommand command);
+
+    SalesOrderSummary getByOrderNumber(String orderNumber);
 }
