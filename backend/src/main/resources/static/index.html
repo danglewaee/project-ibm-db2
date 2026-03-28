@@ -6,188 +6,61 @@
     <title>B2B Ops Control Tower</title>
     <meta
             name="description"
-            content="Public demo for a B2B order allocation and reconciliation platform built with Spring Boot, Flyway, and Db2-validated workflows."
+            content="A quiet landing page for the public demo of a B2B order allocation and reconciliation platform."
     >
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
-<div class="page-shell">
-    <div class="ambient ambient-left"></div>
-    <div class="ambient ambient-right"></div>
+<body class="home-page">
+<div class="chrome-shell">
+    <div class="orb orb-left"></div>
+    <div class="orb orb-right"></div>
 
-    <header class="hero">
-        <div class="hero-copy reveal reveal-1">
-            <p class="eyebrow">B2B Ops Control Tower</p>
-            <h1>Order allocation, shipment control, and reconciliation in one public demo.</h1>
-            <p class="hero-text">
-                This landing page fronts the live Cloud Run deployment of a B2B order allocation platform.
-                The public runtime uses demo-grade H2 storage, while the core workflow was also validated
-                against live Db2 in Docker before deployment.
-            </p>
-
-            <div class="hero-actions">
-                <a class="action primary" href="#runtime-status">See live status</a>
-                <a class="action secondary" href="#api-surface">Inspect APIs</a>
-                <a class="action ghost" href="https://github.com/danglewaee/project-ibm-db2" target="_blank" rel="noreferrer">
-                    View source
-                </a>
-            </div>
-        </div>
-
-        <div class="hero-panel reveal reveal-2">
-            <div class="panel-header">
-                <span class="panel-label">Live runtime</span>
-                <span class="panel-tag" id="health-pill">Checking</span>
-            </div>
-
-            <div class="metric-grid">
-                <article class="metric-card">
-                    <span class="metric-label">Runtime mode</span>
-                    <strong class="metric-value" id="runtime-mode">Loading</strong>
-                </article>
-                <article class="metric-card">
-                    <span class="metric-label">Persistence</span>
-                    <strong class="metric-value" id="persistence-mode">Loading</strong>
-                </article>
-                <article class="metric-card">
-                    <span class="metric-label">Application</span>
-                    <strong class="metric-value" id="application-name">Loading</strong>
-                </article>
-                <article class="metric-card">
-                    <span class="metric-label">DDL path</span>
-                    <strong class="metric-value small" id="ddl-path">Loading</strong>
-                </article>
-            </div>
-
-            <p class="panel-footnote">
-                Runtime facts above are fetched live from <code>/actuator/health</code> and
-                <code>/api/v1/system/info</code>.
-            </p>
-        </div>
+    <header class="site-header">
+        <a class="brand-mark" href="/">B2B Ops Control Tower</a>
+        <nav class="site-nav">
+            <a href="/runtime.html">Runtime</a>
+            <a href="/flows.html">Flows</a>
+            <a href="/proof.html">Proof</a>
+            <a href="https://github.com/danglewaee/project-ibm-db2" target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
     </header>
 
-    <main>
-        <section class="section reveal reveal-2">
-            <div class="section-heading">
-                <p class="section-kicker">Why this exists</p>
-                <h2>The problem is not inventory mismatch. It is broken promises.</h2>
-            </div>
+    <main class="home-main">
+        <section class="hero-stage reveal reveal-1">
+            <p class="micro-label">Public demo</p>
+            <h1>Promise inventory you can actually ship.</h1>
+            <p class="hero-brief">
+                This project models order allocation, shipment control, reconciliation, and audit history
+                for warehouse-heavy B2B operations.
+            </p>
 
-            <div class="narrative-grid">
-                <article class="story-card">
-                    <h3>Who uses it</h3>
-                    <p>Sales ops, warehouse ops, and operations managers coordinating fulfillment across multiple warehouses.</p>
-                </article>
-                <article class="story-card">
-                    <h3>Where it hurts</h3>
-                    <p>Reserved stock overlaps, partial shipments drift from reality, and cycle counts expose reconciliation gaps too late.</p>
-                </article>
-                <article class="story-card">
-                    <h3>Why the model matters</h3>
-                    <p>Reservations, stock movements, shipment events, and audit trails have to remain internally consistent under transactional pressure.</p>
-                </article>
+            <div class="hero-ribbon">
+                <span class="live-dot" id="health-dot"></span>
+                <span id="health-copy">Checking live runtime</span>
             </div>
         </section>
 
-        <section class="section spotlight reveal reveal-3" id="runtime-status">
-            <div class="section-heading">
-                <p class="section-kicker">Workflow surface</p>
-                <h2>What the live service supports right now.</h2>
-            </div>
+        <section class="door-grid reveal reveal-2">
+            <a class="door-card accent-fire" href="/runtime.html">
+                <span class="door-tag">01</span>
+                <strong>Live runtime</strong>
+                <p>See the deployment status, active runtime profile, persistence mode, and service metadata.</p>
+                <span class="door-link">Open runtime page</span>
+            </a>
 
-            <div class="workflow-layout">
-                <article class="workflow-rail">
-                    <div class="rail-step">
-                        <span class="rail-index">01</span>
-                        <div>
-                            <h3>Create</h3>
-                            <p>Create a draft sales order with customer, requested ship date, and multiple line items.</p>
-                        </div>
-                    </div>
-                    <div class="rail-step">
-                        <span class="rail-index">02</span>
-                        <div>
-                            <h3>Reserve</h3>
-                            <p>Reserve stock by warehouse without overshooting available quantity.</p>
-                        </div>
-                    </div>
-                    <div class="rail-step">
-                        <span class="rail-index">03</span>
-                        <div>
-                            <h3>Ship or cancel</h3>
-                            <p>Ship partially or fully, or cancel and release the remaining reserved quantity.</p>
-                        </div>
-                    </div>
-                    <div class="rail-step">
-                        <span class="rail-index">04</span>
-                        <div>
-                            <h3>Reconcile</h3>
-                            <p>Run stock counts, create variance records, and preserve audit history for operator actions.</p>
-                        </div>
-                    </div>
-                </article>
+            <a class="door-card accent-forest" href="/flows.html">
+                <span class="door-tag">02</span>
+                <strong>Workflow map</strong>
+                <p>Walk through create, reserve, ship, cancel, and reconcile without cluttering the front page.</p>
+                <span class="door-link">Open flows page</span>
+            </a>
 
-                <article class="live-card">
-                    <div class="live-card-header">
-                        <h3>Supported flows</h3>
-                        <span class="live-pill" id="flow-count">0 loaded</span>
-                    </div>
-                    <ul class="live-list" id="supported-flows">
-                        <li>Loading supported flows...</li>
-                    </ul>
-                </article>
-            </div>
-        </section>
-
-        <section class="section reveal reveal-3" id="api-surface">
-            <div class="section-heading">
-                <p class="section-kicker">API quick access</p>
-                <h2>Useful public endpoints for review and demo.</h2>
-            </div>
-
-            <div class="endpoint-grid">
-                <a class="endpoint-card" href="/actuator/health" target="_blank" rel="noreferrer">
-                    <span class="endpoint-method">GET</span>
-                    <strong>/actuator/health</strong>
-                    <p>Infrastructure liveness for the Cloud Run instance.</p>
-                </a>
-                <a class="endpoint-card" href="/api/v1/system/info" target="_blank" rel="noreferrer">
-                    <span class="endpoint-method">GET</span>
-                    <strong>/api/v1/system/info</strong>
-                    <p>Runtime mode, persistence mode, supported flows, and next steps.</p>
-                </a>
-                <a class="endpoint-card" href="https://github.com/danglewaee/project-ibm-db2" target="_blank" rel="noreferrer">
-                    <span class="endpoint-method">REPO</span>
-                    <strong>GitHub source</strong>
-                    <p>Schema, scripts, tests, deployment path, and architecture notes.</p>
-                </a>
-            </div>
-        </section>
-
-        <section class="section proof reveal reveal-4">
-            <div class="section-heading">
-                <p class="section-kicker">Technical truth</p>
-                <h2>What this deployment proves, and what it does not claim.</h2>
-            </div>
-
-            <div class="proof-grid">
-                <article class="proof-card success">
-                    <h3>Proved here</h3>
-                    <ul>
-                        <li>Spring Boot service can be packaged, built, and exposed as a public Cloud Run service.</li>
-                        <li>Landing page reads live runtime metadata from the deployed backend.</li>
-                        <li>Core order, reservation, shipment, cancellation, reconciliation, and audit slices exist in the service.</li>
-                    </ul>
-                </article>
-                <article class="proof-card neutral">
-                    <h3>Proved earlier</h3>
-                    <ul>
-                        <li>Transactional workflow and schema were validated against live Db2 in Docker.</li>
-                        <li>Flyway migrations and integration tests passed before this cloud demo was published.</li>
-                        <li>The IBM Cloud Code Engine path is prepared, but not claimed as a completed paid-cloud deployment.</li>
-                    </ul>
-                </article>
-            </div>
+            <a class="door-card accent-stone" href="/proof.html">
+                <span class="door-tag">03</span>
+                <strong>Technical proof</strong>
+                <p>Separate what was proved on Cloud Run from what was validated earlier on live Db2.</p>
+                <span class="door-link">Open proof page</span>
+            </a>
         </section>
     </main>
 </div>

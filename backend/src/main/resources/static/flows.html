@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flows | B2B Ops Control Tower</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="chrome-shell">
+    <div class="orb orb-left"></div>
+    <div class="orb orb-right"></div>
+
+    <header class="site-header">
+        <a class="brand-mark" href="/">B2B Ops Control Tower</a>
+        <nav class="site-nav">
+            <a href="/runtime.html">Runtime</a>
+            <a href="/flows.html">Flows</a>
+            <a href="/proof.html">Proof</a>
+            <a href="https://github.com/danglewaee/project-ibm-db2" target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
+    </header>
+
+    <main class="detail-main">
+        <section class="detail-hero reveal reveal-1">
+            <span class="detail-tag">Flow page</span>
+            <h1>How the system moves.</h1>
+            <p class="detail-copy">
+                This page keeps the workflow visible without forcing every operational detail onto the landing page.
+            </p>
+        </section>
+
+        <section class="detail-layout reveal reveal-2">
+            <article class="flow-panel">
+                <div class="flow-header">
+                    <h2>Primary sequence</h2>
+                    <span class="status-chip" id="flow-count">Loading</span>
+                </div>
+
+                <div class="flow-strip">
+                    <div class="flow-step">
+                        <h3>Create order</h3>
+                        <p>Capture customer demand, requested ship date, and item quantities as a draft order.</p>
+                    </div>
+                    <div class="flow-step">
+                        <h3>Reserve by warehouse</h3>
+                        <p>Allocate inventory only against available quantity so commitments remain believable.</p>
+                    </div>
+                    <div class="flow-step">
+                        <h3>Ship or cancel</h3>
+                        <p>Convert reservations into shipments, or release the remainder when the order is cancelled.</p>
+                    </div>
+                    <div class="flow-step">
+                        <h3>Count and reconcile</h3>
+                        <p>Record inventory variance and write audit history instead of masking the mismatch.</p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="detail-panel">
+                <div class="panel-heading">
+                    <h2>Supported flows from the live API</h2>
+                    <span class="status-chip">Live</span>
+                </div>
+
+                <ul class="flow-list" id="supported-flows">
+                    <li>Loading supported flows...</li>
+                </ul>
+            </article>
+        </section>
+
+        <a class="back-link" href="/">Back to front door</a>
+    </main>
+</div>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

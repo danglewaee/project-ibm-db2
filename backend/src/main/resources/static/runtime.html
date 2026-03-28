@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runtime | B2B Ops Control Tower</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="chrome-shell">
+    <div class="orb orb-left"></div>
+    <div class="orb orb-right"></div>
+
+    <header class="site-header">
+        <a class="brand-mark" href="/">B2B Ops Control Tower</a>
+        <nav class="site-nav">
+            <a href="/runtime.html">Runtime</a>
+            <a href="/flows.html">Flows</a>
+            <a href="/proof.html">Proof</a>
+            <a href="https://github.com/danglewaee/project-ibm-db2" target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
+    </header>
+
+    <main class="detail-main">
+        <section class="detail-hero reveal reveal-1">
+            <span class="detail-tag">Runtime page</span>
+            <h1>Live deployment facts.</h1>
+            <p class="detail-copy">
+                This page exposes only runtime-level details: health, active profile, persistence mode,
+                and the deployment metadata returned by the live service.
+            </p>
+        </section>
+
+        <section class="detail-layout reveal reveal-2">
+            <article class="detail-panel">
+                <div class="panel-heading">
+                    <h2>Service status</h2>
+                    <span class="status-chip" id="health-pill">Checking</span>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Application</span>
+                        <strong class="stat-value" id="application-name">Loading</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Runtime mode</span>
+                        <strong class="stat-value" id="runtime-mode">Loading</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Persistence</span>
+                        <strong class="stat-value" id="persistence-mode">Loading</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">DDL path</span>
+                        <strong class="stat-value" id="ddl-path">Loading</strong>
+                    </div>
+                </div>
+            </article>
+
+            <article class="detail-panel">
+                <div class="panel-heading">
+                    <h2>Direct entry points</h2>
+                    <span class="status-chip">Public</span>
+                </div>
+
+                <div class="endpoint-grid">
+                    <a class="endpoint-tile" href="/actuator/health" target="_blank" rel="noreferrer">
+                        <span class="micro-label">GET</span>
+                        <strong>/actuator/health</strong>
+                        <p>Quick infrastructure liveness check.</p>
+                    </a>
+                    <a class="endpoint-tile" href="/api/v1/system/info" target="_blank" rel="noreferrer">
+                        <span class="micro-label">GET</span>
+                        <strong>/api/v1/system/info</strong>
+                        <p>Application name, supported flows, and next steps.</p>
+                    </a>
+                </div>
+            </article>
+        </section>
+
+        <a class="back-link" href="/">Back to front door</a>
+    </main>
+</div>
+
+<script src="/app.js" defer></script>
+</body>
+</html>

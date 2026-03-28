@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proof | B2B Ops Control Tower</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="chrome-shell">
+    <div class="orb orb-left"></div>
+    <div class="orb orb-right"></div>
+
+    <header class="site-header">
+        <a class="brand-mark" href="/">B2B Ops Control Tower</a>
+        <nav class="site-nav">
+            <a href="/runtime.html">Runtime</a>
+            <a href="/flows.html">Flows</a>
+            <a href="/proof.html">Proof</a>
+            <a href="https://github.com/danglewaee/project-ibm-db2" target="_blank" rel="noreferrer">GitHub</a>
+        </nav>
+    </header>
+
+    <main class="detail-main">
+        <section class="detail-hero reveal reveal-1">
+            <span class="detail-tag">Proof page</span>
+            <h1>What is actually proved here.</h1>
+            <p class="detail-copy">
+                This page keeps the cloud story honest by separating live-demo proof from the earlier Db2 validation work.
+            </p>
+        </section>
+
+        <section class="proof-grid reveal reveal-2">
+            <article class="evidence-card positive">
+                <h3>Proved on the public deployment</h3>
+                <ul class="proof-list">
+                    <li>The backend packages cleanly into a public Cloud Run service.</li>
+                    <li>The root experience is no longer an exposed API wall; it behaves like a product front door.</li>
+                    <li>The service still exposes live health and system metadata for inspection.</li>
+                </ul>
+            </article>
+
+            <article class="evidence-card bounded">
+                <h3>Proved earlier, not re-claimed here</h3>
+                <ul class="proof-list">
+                    <li>Reservation, shipment, cancellation, reconciliation, and audit behavior were validated against live Db2 in Docker.</li>
+                    <li>Flyway migrations and integration flows were exercised before the public Cloud Run demo was published.</li>
+                    <li>The IBM Cloud Code Engine path exists in the repo, but this page does not pretend that paid-cloud path was completed.</li>
+                </ul>
+            </article>
+        </section>
+
+        <a class="back-link" href="/">Back to front door</a>
+    </main>
+</div>
+</body>
+</html>

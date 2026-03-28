@@ -23,7 +23,9 @@ class LandingPageTest {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/html"))
-                .andExpect(content().string(containsString("B2B Ops Control Tower")))
-                .andExpect(content().string(containsString("Order allocation, shipment control, and reconciliation in one public demo.")));
+                .andExpect(content().string(containsString("Promise inventory you can actually ship.")))
+                .andExpect(content().string(containsString("Open runtime page")))
+                .andExpect(content().string(containsString("Open flows page")))
+                .andExpect(content().string(containsString("Open proof page")));
     }
 }

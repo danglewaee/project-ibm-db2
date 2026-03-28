@@ -14,26 +14,50 @@ function setText(id, value) {
     }
 }
 
+function setHealthState(status) {
+    const pill = document.getElementById("health-pill");
+    const dot = document.getElementById("health-dot");
+    const copy = document.getElementById("health-copy");
+    const up = status === "UP";
+
+    if (pill) {
+        pill.textContent = status;
+        pill.classList.remove("up", "down");
+        pill.classList.add(up ? "up" : "down");
+    }
+
+    if (dot) {
+        dot.classList.remove("up", "down");
+        dot.classList.add(up ? "up" : "down");
+    }
+
+    if (copy) {
+        copy.textContent = up ? "Live service is up" : "Live service is unavailable";
+    }
+}
+
 function renderFlows(flows) {
     const list = document.getElementById("supported-flows");
     const count = document.getElementById("flow-count");
-    if (!list || !count) {
+    if (!list) {
         return;
     }
 
-    list.innerHTML = "";
     const items = flows.length > 0 ? flows : defaultFlows;
-    count.textContent = `${items.length} loaded`;
+    list.innerHTML = "";
 
     items.forEach((flow) => {
         const li = document.createElement("li");
         li.textContent = flow;
         list.appendChild(li);
     });
+
+    if (count) {
+        count.textContent = `${items.length} flows`;
+    }
 }
 
 async function loadHealth() {
-    const pill = document.getElementById("health-pill");
     try {
         const response = await fetch("/actuator/health");
         if (!response.ok) {
@@ -41,12 +65,9 @@ async function loadHealth() {
         }
 
         const payload = await response.json();
-        const status = payload.status || "UNKNOWN";
-        pill.textContent = status;
-        pill.classList.add(status === "UP" ? "up" : "down");
+        setHealthState(payload.status || "UNKNOWN");
     } catch (error) {
-        pill.textContent = "Unavailable";
-        pill.classList.add("down");
+        setHealthState("DOWN");
     }
 }
 
@@ -58,10 +79,10 @@ async function loadSystemInfo() {
         }
 
         const payload = await response.json();
-        setText("application-name", payload.application || "Unknown");
-        setText("runtime-mode", payload.runtimeMode || "Unknown");
-        setText("persistence-mode", payload.persistenceMode || "Unknown");
-        setText("ddl-path", payload.ddlPath || "Unknown");
+        setText("application-name", payload.application || "Unavailable");
+        setText("runtime-mode", payload.runtimeMode || "Unavailable");
+        setText("persistence-mode", payload.persistenceMode || "Unavailable");
+        setText("ddl-path", payload.ddlPath || "Unavailable");
         renderFlows(payload.supportedFlows || []);
     } catch (error) {
         setText("application-name", "Unavailable");
